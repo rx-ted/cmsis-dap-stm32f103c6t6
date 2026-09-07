@@ -68,10 +68,10 @@ Other presets: `Debug` (-O0 -g3) for debugging, `ubtest`
 (`-DCDC_USB_LOOPBACK_TEST`) for the USB-internal loopback variant; each
 builds into its own `build/<presetName>/` directory.
 
-Flash the probe with an ST-Link (SM3/NRST/GND wiring, see `hardware/pinout.md`).
+Flash the probe with an ST-Link (SM3/NRST/GND wiring, see `doc/en/pinout.md`).
 
 Flashing, erasing, read-protection and other OpenOCD device operations are
-covered in `doc/flash.md`.
+covered in `doc/en/flash.md`.
 
 ## Verified results
 
@@ -99,4 +99,4 @@ losslessly. See `test/`.
 ## Notes
 
 - Toolchain/pack details are recorded in `test/README.md`.
-- Known behaviours and gaps are listed in `doc/features.md`.
+- Known behaviours and gaps are listed in `doc/en/features.md`.

@@ -1,23 +1,32 @@
-# nanoDAP C6 (CMSIS-DAP-C6)
+# CMSIS-DAP-C6
 
-Standalone CMSIS-DAP v2 debug probe firmware for the
-STM32F103C6T6 "mini" board, derived from this repos' STM32F103C8T6
-CMSIS-DAP_SWO project, reduced to a minimal pin-compatible C6 build.
+Standalone CMSIS-DAP v2 debug probe firmware for the STM32F103C6T6
+"mini" board, derived from the STM32F103C8T6 CMSIS-DAP_SWO variant of
+the nanoDAP project.
 
-## Features
+目前唯一的 CMSIS-DAP v2 调试探针固件，面向 STM32F103C6T6 "mini" 板，
+源自 nanoDAP 项目的 STM32F103C8T6 CMSIS-DAP_SWO 变体。
 
-- CMSIS-DAP over HID (SWD transport) - flash / RAM debug of Cortex-M targets
-- Combined HID + CDC composite USB device, serial number from chip UID
-- CDC virtual COM port bridging USART1 (PA9 TX / PA10 RX, 115200 8-N-1)
+## Languages / 语言
 
-## Layout
+- [English](doc/en/README.md)
+- [中文](doc/zh/README.md)
 
-- `doc/` architecture, build, verified results, feature lists
-- `hardware/` pinout and wiring
-- `test/` CDC loopback and SWD regression scripts
-- `src/` sources (`dap/`, `usb/`, `config/`, `cmsis/`)
-- `startup/` vector startup and linker script
-- `cmake/` arm-none-eabi toolchain file
+## Layout / 目录结构
 
-See `doc/README.md` for build and usage, `doc/features.md` for the
-implemented / not-implemented matrix, `hardware/pinout.md` for wiring.
+- `doc/en/`   English documentation
+- `doc/zh/`   中文文档
+- `test/`      CDC loopback and SWD regression scripts
+- `src/`       sources (`dap/`, `usb/`, `config/`, `cmsis/`)
+- `startup/`   vector startup and linker script
+- `cmake/`     arm-none-eabi toolchain, CubeMX-style source lists, OpenOCD targets
+- `.vscode/`   (optional) VS Code Cortex-Debug launch/tasks config
+
+## Quick build / 快速构建
+
+```sh
+cmake --preset Release
+cmake --build --preset Release
+```
+
+See / 见 `doc/en/README.md` or `doc/zh/README.md` for details.
