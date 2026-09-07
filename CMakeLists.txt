@@ -1,86 +1,79 @@
-cmake_minimum_required(VERSION 3.16)
-project(nanoDAP-C6 C ASM)
+cmake_minimum_required(VERSION 3.22)
 
+#
+# nanoDAP-C6
+#
+# CMake layout mirrors the STM32CubeMX-generated template (see the sibling
+# LED project): app + library sources are listed in cmake/stm32cubemx, the
+# compiler/linker flags for the arm-none-eabi toolchain live in
+# cmake/gcc-arm-none-eabi.cmake. Configure via the presets in
+# CMakePresets.json.
+#
+
+# Setup compiler settings
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+set(CMAKE_C_EXTENSIONS ON)
 
-set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} --specs=nano.specs")
 
-# C6: 32 KB Flash / 10 KB SRAM, Cortex-M3, -Os and gc-sections to fit.
-add_compile_options(
-  -mcpu=cortex-m3
-  -mthumb
-  -Os
-  -ffunction-sections
-  -fdata-sections
-  -fno-builtin
+# Define the build type
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
+# Set the project name
+set(CMAKE_PROJECT_NAME nanoDAP-C6)
+
+# Enable compile command to ease indexing with e.g. clangd
+set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
+
+# Core project settings
+project(${CMAKE_PROJECT_NAME})
+message("Build type: " ${CMAKE_BUILD_TYPE})
+
+# Enable CMake support for ASM and C languages
+enable_language(C ASM)
+
+# Create an executable object type
+add_executable(${CMAKE_PROJECT_NAME})
+
+# Generated sources / library layout
+add_subdirectory(cmake/stm32cubemx)
+
+# Link directories setup
+target_link_directories(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user defined library search paths
 )
 
-add_link_options(
-  -mcpu=cortex-m3
-  -mthumb
-  -Wl,--gc-sections
-  -Wl,--print-memory-usage
-  -Wl,-Map=${CMAKE_CURRENT_BINARY_DIR}/nanoDAP-C6.map
-  -nostartfiles
-  -T${CMAKE_CURRENT_SOURCE_DIR}/startup/stm32f103c6_flash.ld
+# Add sources to executable
+target_sources(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user sources here
 )
 
-add_compile_definitions(
-  BOARD_C6
-  STM32F103xB
-  __STM32F10x_H
-  USE_STDPERIPH_DRIVER
+# Add include paths
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user defined include paths
 )
 
-set(CMSIS_SRC
-  src/cmsis/system_stm32f1xx.c
+# Add project symbols (macros)
+target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
+    # Add user defined symbols
 )
 
-set(DAP_SRC
-  src/dap/DAP.c
-  src/dap/SW_DP.c
+# Remove wrong libob.a library dependency when using cpp files
+list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
+
+# Add linked libraries
+target_link_libraries(${CMAKE_PROJECT_NAME}
+    stm32cubemx
+
+    # Add user defined libraries
 )
 
-set(USB_CORE_SRC
-  src/usb/core/src/usb_core.c
-  src/usb/core/src/usb_init.c
-  src/usb/core/src/usb_int.c
-  src/usb/core/src/usb_mem.c
-  src/usb/core/src/usb_regs.c
-  src/usb/core/src/usb_sil.c
-)
 
-set(USB_APP_SRC
-  src/usb/hw_config.c
-  src/usb/usb_desc.c
-  src/usb/usb_endp.c
-  src/usb/usb_istr.c
-  src/usb/usb_prop.c
-  src/usb/usb_pwr.c
-)
-
-add_executable(nanoDAP-C6
-  src/main.c
-  src/stm32_it.c
-  startup/startup_stm32f103xb.s
-  ${CMSIS_SRC}
-  ${DAP_SRC}
-  ${USB_CORE_SRC}
-  ${USB_APP_SRC}
-)
-
-target_include_directories(nanoDAP-C6 PRIVATE
-  src
-  src/cmsis
-  src/config
-  src/dap
-  src/usb
-  src/usb/core/inc
-)
-
-add_custom_command(TARGET nanoDAP-C6 POST_BUILD
-  COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:nanoDAP-C6> ${CMAKE_CURRENT_BINARY_DIR}/nanoDAP-C6.bin
-  COMMAND ${CMAKE_OBJCOPY} -O ihex   $<TARGET_FILE:nanoDAP-C6> ${CMAKE_CURRENT_BINARY_DIR}/nanoDAP-C6.hex
+# Generate flashable firmware artifacts (.bin / .hex)
+add_custom_command(TARGET ${CMAKE_PROJECT_NAME} POST_BUILD
+  COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}.bin
+  COMMAND ${CMAKE_OBJCOPY} -O ihex   $<TARGET_FILE:${CMAKE_PROJECT_NAME}> ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_PROJECT_NAME}.hex
   COMMENT "Generate binary and hex firmware files"
 )

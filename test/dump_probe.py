@@ -1,6 +1,6 @@
 import hashlib
 from pyocd.core.helpers import ConnectHelper
-bin_bytes = open("build/nanoDAP-C6.bin","rb").read()
+bin_bytes = open("build/Release/nanoDAP-C6.bin","rb").read()
 session = ConnectHelper.session_with_chosen_probe(target_override="stm32f103c8", options={"frequency": 1000000, "connect_mode": "under-reset"})
 session.open()
 t = session.target

@@ -48,18 +48,28 @@ Data path design:
 
 ## Build
 
-Requirements: CMake >= 3.13, arm-none-eabi-gcc 15 (xPack used here).
+Requirements: CMake >= 3.22, arm-none-eabi-gcc 15 (xPack used here) on PATH.
+
+The CMake layout mirrors the sibling LED project (CubeMX-style): compiler
+flags live in `cmake/gcc-arm-none-eabi.cmake`, sources in
+`cmake/stm32cubemx/`, and builds are driven by `CMakePresets.json`.
+Presets use the Unix Makefiles generator (no Ninja required); switch the
+`generator` to `Ninja` in `CMakePresets.json` if Ninja is installed.
 
 ```sh
-cmake -S . -B build -G "Unix Makefiles" \
-      -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-toolchain.cmake
-cmake --build build
+cmake --preset Release        # flashing build (-Os), -> build/Release/
+cmake --build --preset Release
 ```
 
-Output: `build/nanoDAP-C6.hex` / `build/nanoDAP-C6.bin`.
+Output: `build/Release/nanoDAP-C6.hex` / `build/Release/nanoDAP-C6.bin`.
 Current footprint: FLASH 10368/32768 B (31.6%), RAM 2588/10240 B (25.3%).
 
+Other presets: `Debug` (-O0 -g3) for debugging, `ubtest`
+(`-DCDC_USB_LOOPBACK_TEST`) for the USB-internal loopback variant; each
+builds into its own `build/<presetName>/` directory.
+
 Flash the probe with an ST-Link (SM3/NRST/GND wiring, see `hardware/pinout.md`).
+
 
 ## Verified results
 

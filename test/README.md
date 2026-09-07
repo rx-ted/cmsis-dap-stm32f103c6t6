@@ -36,9 +36,8 @@ Expected behaviour (current firmware):
 `cdc_ub*` scripts run against a special USB-loopback build:
 
 ```sh
-cmake -S . -B build-ubtest -DCMAKE_TOOLCHAIN_FILE=cmake/arm-none-eabi-toolchain.cmake \
-      -DCMAKE_C_FLAGS=-DCDC_USB_LOOPBACK_TEST
-cmake --build build-ubtest
+cmake --preset ubtest
+cmake --build --preset ubtest
 ```
 
 ## SWD / DAP tests
