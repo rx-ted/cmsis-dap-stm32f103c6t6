@@ -23,6 +23,11 @@ void SysTick_Handler(void)
   SysTick_ms++;
 }
 
+uint32_t Get_SysTick_ms(void)
+{
+  return SysTick_ms;
+}
+
 /* CMSIS-DAP core descriptor: LED callbacks invoked by the host status command. */
 static void SetLED_Connected(uint16_t b)
 {
@@ -84,6 +89,12 @@ int main(void)
     /* CDC bridge: USART RX -> USB IN, USB OUT -> USART TX. */
     CDC_RxSend();
     USART_TX_Kick();
+
+#if (CDC_JTAG_SWITCH != 0)
+    /* JTAG idle timeout: revert shared PA9/PA10 back to CDC if the host
+       has been quiet for CDC_JTAG_TIMEOUT_MS. */
+    JTAG_Port_Tick();
+#endif
 
     /* Target Running LED blinks once per second. */
     if ((SysTick_ms % 1000UL) == 0UL)

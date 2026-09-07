@@ -2,10 +2,14 @@
 
 ## Firmware footprint
 
-| Region | Used    | Total | %     |
-| ------ | ------- | ----- | ----- |
-| FLASH  | 10368 B | 32 KB | 31.6% |
-| RAM    | 2588 B  | 10 KB | 25.3% |
+Build presets:
+
+| Preset  | Build type | Footprint                  | Use                          |
+| ------- | ---------- | -------------------------- | ---------------------------- |
+| Release | -Os -g0    | FLASH 13196 B / RAM 2636 B | flashing build (default)     |
+| Debug   | -Os -g3    | FLASH 13196 B / RAM 2636 B | GDB / VS Code debug symbols  |
+| ubtest  | Debug      | —                          | CDC USB loopback test        |
+| cdc     | Release    | FLASH 10368 B / RAM 2588 B | CDC-only (JTAG compiled out) |
 
 Output files: `build/Release/nanoDAP-C6.hex` and `build/Release/nanoDAP-C6.bin`.
 
@@ -38,6 +42,23 @@ Or with the native cmake driver:
 cmake --build --preset Release --target flash
 ```
 
+**Reset-line dependency:** the `flash` target uses `reset_config srst_only`
+(i.e. the ST-Link NRST pin). If NRST is not wired, flashing still works but
+the trailing `reset` fails with "Unable to reset target". Flash with a
+software reset instead:
+
+```sh
+openocd -f interface/stlink.cfg \
+  -c "transport select hla_swd" \
+  -f target/stm32f1x.cfg \
+  -c "adapter speed 10000" \
+  -c "reset_config none" \
+  -c "init" -c "halt" \
+  -c "flash write_image erase build/Release/nanoDAP-C6.hex" \
+  -c "verify_image build/Release/nanoDAP-C6.hex" \
+  -c "reset run" -c "shutdown"
+```
+
 Other local targets:
 
 ```sh
@@ -54,7 +75,7 @@ make -C build/Release gdbserver   # start GDB server on :3333 (foreground)
 When the C6 acts as a CMSIS-DAP debug probe, it can flash another STM32
 board (e.g. a Blue Pill). Wire the C6 SWD header to the target:
 
-C6 → Target:
+C6 → Target (SWD):
 
 | C6  | Target |
 | --- | ------ |
@@ -62,6 +83,18 @@ C6 → Target:
 | PA4 | SWCLK  |
 | PA6 | NRST   |
 | GND | GND    |
+
+C6 → Target (JTAG): TDI/TDO live on PA9/PA10 (shared with USART1, see
+features.md). The probe autoreverts to TDI/TDO while a JTAG session runs.
+
+| C6   | Target |
+| ---- | ------ |
+| PA4  | TCK    |
+| PA2  | TMS    |
+| PA9  | TDI    |
+| PA10 | TDO    |
+| PA6  | NRST   |
+| GND  | GND    |
 
 Configure with CMSIS-DAP interface and re-build:
 

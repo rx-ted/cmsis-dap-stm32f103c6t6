@@ -4,10 +4,13 @@
 
 ### SWD / 调试（HID 上的 CMSIS-DAP）
 - HID 传输（EP3），CMSIS-DAP 协议（DAP_Info 报告 PROTO_VER 2.0.0）。
-- 仅 SWD 传输：连接、AP-IDR 读写、CPUID、flash 读取（含经 PMA 的
+- SWD 传输：连接、AP-IDR 读写、CPUID、flash 读取（含经 PMA 的
   64 字节块读）、RAM 读写、复位 / 停机 / 运行 / 恢复。
+- JTAG 传输（来自 V1.4 CMSIS-DAP 驱动）：JTAG_Sequence /
+  JTAG_Configure / JTAG_IDCode / JTAG_Transfer / JTAG_TransferBlock，
+  在 TCK(PA4)/TMS(PA2)/TDI(PA9)/TDO(PA10) 上软件位操作。
 - 已对 Blue Pill（STM32F103C8T6）端到端验证：CPUID 0x411FC231、
-  目标复位、halt/resume、内存读取。
+  目标复位、halt/resume、内存读取（SWD）。
 - 经 pyocd pack 算法（Keil.STM32F1xx_DFP）对目标 flash 编程：
   `pyocd flash -t stm32f103c8 -M halt ...` -> 芯片擦除 + 页编程 + 校验，
   目标随后运行烧写的镜像。
@@ -28,15 +31,28 @@
 - 在线速率下逐字节正确（已通过 PA9/PA10 回环验证）。
 - USART1 IRQ 与 USB 同级 NVIC 优先级，RX 不会被饿死。
 
+### 运行时 CDC <-> JTAG 引脚共享（PA9/PA10）
+- TDI（PA9）与 TDO（PA10）复用 USART1 的 TX/RX 引脚。默认探针以
+  CDC 模式启动（USART1 工作）。
+- 当主机在 CMSIS-DAP 命令中选择了 JTAG 端口（`DAP_Connect` 端口 2，
+  或处于 JTAG 会话中）时，USART1 被关闭，PA9 重新配置为推挽输出
+  TDI，PA10 为浮空输入 TDO。
+- 在 JTAG 静默超过 `CDC_JTAG_TIMEOUT_MS`（默认 2000）后，探针切回
+  CDC（USART1 以 115200 重新初始化）。
+- 编译期总开关：`CDC_JTAG_SWITCH = 1`（默认，两种模式）或 `0`
+  （强制仅 CDC，JTAG 编译移除）。见 `cdc` CMake 预设。
+
 ### 指示灯
 - PB8 LED_RUNNING：主循环约 1 Hz 闪烁。
 - PB12 LED_CONNECTED：USB 设备进入 CONFIGURED 状态后点亮。
 
 ## 未实现 / 限制
 
-- **SWO / ITM 跟踪**：C6 板未引出 TDO/SWO（本变体移除了 JTAG 与跟踪）。
-  仅 SWD。
-- **JTAG**：TDI/TDO 未接线；DAP_Info 能力位仅反映 SWD。
+- **SWO / ITM 跟踪**：C6 板未引出 SWO/TDO 跟踪引脚（JTAG TDO 在 PA10
+  上与 USART1 RX 共享，不用于跟踪）。
+- **JTAG 引脚与 CDC 物理共享**：PA9/PA10 仅在 JTAG 会话期间充当
+  TDI/TDO；期间 CDC 串口桥被关闭。空闲 2 s（见上文切换节）后引脚
+  回到 USART1。
 - **VTref / 目标电压检测**：SWD 线为推挽输出；无电平检测或电平转换。
   目标逻辑必须为 3.3 V，并与探针共地。
 - **CDC 波特率选择**：主机波特率请求被忽略；USART1 固定 115200

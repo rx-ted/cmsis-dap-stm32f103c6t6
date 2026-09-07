@@ -98,13 +98,27 @@ Provides definitions about:
 /// This information is returned by the command \ref DAP_Info as part of <b>Capabilities</b>.
 #define DAP_SWD                 1       ///< SWD Mode:  1 = available, 0 = not available
 
+/// CMSIS-DAP JTAG vs CDC serial switching on shared PA9/PA10 pins.
+/// BOARD_C6 reuses USART1 TX/RX (PA9/PA10) as JTAG TDI/TDO. With
+/// CDC_JTAG_SWITCH = 1 (default) both modes are compiled in and switched
+/// at runtime: Pins default to USART1 (CDC), while the host runs JTAG
+/// (DAP_PORT_JTAG or any DAP_JTAG_* command) they become TDI/TDO, and
+/// after CDC_JTAG_TIMEOUT_MS of inactivity revert to CDC. With
+/// CDC_JTAG_SWITCH = 0 the build is forced to CDC-only (DAP_JTAG 0).
+#ifndef CDC_JTAG_SWITCH
+#define CDC_JTAG_SWITCH         1       ///< 1 = runtime CDC<->JTAG switch, 0 = forced
+#endif
+#ifndef CDC_JTAG_TIMEOUT_MS
+#define CDC_JTAG_TIMEOUT_MS     2000    ///< JTAG idle time (ms) before reverting to CDC
+#endif
+
 /// Indicate that JTAG communication mode is available at the Debug Port.
 /// This information is returned by the command \ref DAP_Info as part of <b>Capabilities</b>.
 #if  defined ( BOARD_STM32RF ) \
   || defined ( STLINK_V20 )    \
   || defined ( STLINK_V21 )    \
   || defined ( STLINK_V2A )    \
-  || defined ( BOARD_C6 )
+  || (defined ( BOARD_C6 ) && (CDC_JTAG_SWITCH == 0))
 #define DAP_JTAG                0       ///< JTAG Mode: 0 = not available, no JTAG pins.
 #else
 #define DAP_JTAG                1       ///< JTAG Mode: 1 = available, 0 = not available.
@@ -325,11 +339,20 @@ typedef enum Pin_e {
 #define PIN_nRESET_PORT     GPIOA
 #define PIN_nRESET_PIN      6
 
-// TDI/TDO Pins not populated on C6 board (JTAG disabled)
-#define PIN_TDI_PORT        GPIOB
-#define PIN_TDI_PIN         11
+// TDI/TDO Pins. Default BOARD_C6: reuse USART1 pins PA9/PA10:
+// PA9 (TX, output) -> TDI, PA10 (RX, input) -> TDO. Same pins as the
+// CDC serial bridge; CDC_JTAG_SWITCH selects between both at runtime.
+#define PIN_TDI_PORT        GPIOA
+#define PIN_TDI_PIN         9
 #define PIN_TDO_PORT        GPIOA
-#define PIN_TDO_PIN         5
+#define PIN_TDO_PIN         10
+
+#if (CDC_JTAG_SWITCH != 0)
+/* Keep the shared PA9/PA10 pins assigned to JTAG while the host is
+   active; the 2 s idle timeout in hw_config.c reverts them to CDC. */
+extern void JTAG_Port_Activity(void);
+#define DAP_JTAG_ACTIVITY() JTAG_Port_Activity()
+#endif
 
 // Debug Unit Identification (returned by DAP_Info)
 // The serial number is generated at run time from the 96-bit chip unique ID.
@@ -942,5 +965,12 @@ __STATIC_INLINE uint8_t RESET_TARGET(void)
 }
 
 ///@}
+
+/* Runtime hook invoked on every CMSIS-DAP command while a JTAG session is
+   active. May be overridden by a board (e.g. C6) to maintain an idle timeout
+   that time-shares pins between JTAG and another peripheral. Default: no-op. */
+#ifndef DAP_JTAG_ACTIVITY
+#define DAP_JTAG_ACTIVITY()     do { } while (0)
+#endif
 
 #endif /* __DAP_CONFIG_H__ */

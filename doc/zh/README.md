@@ -61,10 +61,12 @@ cmake --build --preset Release
 ```
 
 产物：`build/Release/nanoDAP-C6.hex` / `build/Release/nanoDAP-C6.bin`。
-当前占用：FLASH 10368/32768 B（31.6%），RAM 2588/10240 B（25.3%）。
+当前占用：FLASH 13196/32768 B（40.3%），RAM 2636/10240 B（25.7%）
+（含 JTAG 与 CDC/JTAG 运行时切换）。
 
-其它预设：`Debug`（-O0 -g3）用于调试，`ubtest`
-（`-DCDC_USB_LOOPBACK_TEST`）用于 USB 内部回环变体；各自构建到
+其它预设：`Debug`（-Os -g3）用于 GDB / VS Code，`ubtest`
+（`-DCDC_USB_LOOPBACK_TEST`）用于 USB 内部回环变体，`cdc`
+（JTAG 编译移除，回到 FLASH 10368 B）用于仅 CDC 构建；各自构建到
 `build/<presetName>/` 目录。
 
 用 ST-Link 烧录探针（SM3/NRST/GND 接线，见 `doc/zh/pinout.md`）。

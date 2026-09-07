@@ -1638,6 +1638,12 @@ uint32_t DAP_ProcessCommand(const uint8_t *request, uint8_t *response) {
     return DAP_ProcessVendorCommand(request, response);
   }
 
+#if (DAP_JTAG != 0)
+  if (DAP_Data.debug_port == DAP_PORT_JTAG) {
+    DAP_JTAG_ACTIVITY();   // refresh runtime JTAG<->CDC switch timer
+  }
+#endif
+
   *response++ = *request;
 
   switch (*request++) {

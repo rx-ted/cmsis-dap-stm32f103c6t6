@@ -33,6 +33,7 @@ set(STM32_Drivers_Src
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/cmsis/system_stm32f1xx.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/dap/DAP.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/dap/SW_DP.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/../../src/dap/JTAG_DP.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/usb/core/src/usb_core.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/usb/core/src/usb_init.c
     ${CMAKE_CURRENT_SOURCE_DIR}/../../src/usb/core/src/usb_int.c

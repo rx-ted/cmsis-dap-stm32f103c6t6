@@ -2,10 +2,14 @@
 
 ## 固件大小
 
-| 区域  | 已用    | 总量  | 占比  |
-|-------|---------|-------|-------|
-| FLASH | 10368 B | 32 KB | 31.6% |
-| RAM   | 2588 B  | 10 KB | 25.3% |
+构建预设：
+
+| 预设    | 构建类型 | 大小                        | 用途                     |
+|---------|----------|-----------------------------|--------------------------|
+| Release | -Os -g0  | FLASH 13196 B / RAM 2636 B  | 烧录用构建（默认）       |
+| Debug   | -Os -g3  | FLASH 13196 B / RAM 2636 B  | GDB / VS Code 调试符号   |
+| ubtest  | Debug    | —                           | CDC USB 回环测试         |
+| cdc     | Release  | FLASH 10368 B / RAM 2588 B  | 仅 CDC（JTAG 编译移除）  |
 
 产物文件：`build/Release/nanoDAP-C6.hex` 与 `build/Release/nanoDAP-C6.bin`。
 
@@ -38,6 +42,22 @@ make -C build/Release flash       # 编程 + 校验 + 复位
 cmake --build --preset Release --target flash
 ```
 
+**复位线依赖**：`flash` 目标使用 `reset_config srst_only`（即 ST-Link
+NRST 引脚）。若未接 NRST，烧录仍可进行，但结尾的 `reset` 会报
+"Unable to reset target"。改用软件复位烧录：
+
+```sh
+openocd -f interface/stlink.cfg \
+  -c "transport select hla_swd" \
+  -f target/stm32f1x.cfg \
+  -c "adapter speed 10000" \
+  -c "reset_config none" \
+  -c "init" -c "halt" \
+  -c "flash write_image erase build/Release/nanoDAP-C6.hex" \
+  -c "verify_image build/Release/nanoDAP-C6.hex" \
+  -c "reset run" -c "shutdown"
+```
+
 其它本地目标：
 
 ```sh
@@ -54,7 +74,7 @@ make -C build/Release gdbserver   # 启动 GDB server 于 :3333（前台）
 当 C6 作为 CMSIS-DAP 调试探针时，可烧录另一块 STM32 板（如
 Blue Pill）。将 C6 SWD 排针接到目标：
 
-C6 → 目标：
+C6 → 目标（SWD）：
 
 | C6  | 目标   |
 |-----|--------|
@@ -62,6 +82,18 @@ C6 → 目标：
 | PA4 | SWCLK  |
 | PA6 | NRST   |
 | GND | GND    |
+
+C6 → 目标（JTAG）：TDI/TDO 位于 PA9/PA10（与 USART1 共享，见
+features.md）。JTAG 会话期间探针自动切换为 TDI/TDO。
+
+| C6   | 目标 |
+|------|------|
+| PA4  | TCK  |
+| PA2  | TMS  |
+| PA9  | TDI  |
+| PA10 | TDO  |
+| PA6  | NRST |
+| GND  | GND  |
 
 以 CMSIS-DAP 接口配置并重新构建：
 

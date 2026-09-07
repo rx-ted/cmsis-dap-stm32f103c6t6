@@ -173,6 +173,62 @@ void USART_Configuration(void)
   USART1->CR1 = USART_CR1_UE | USART_CR1_TE | USART_CR1_RE | USART_CR1_RXNEIE;
 }
 
+#if (CDC_JTAG_SWITCH != 0)
+/* One-shot timeout bookkeeping for the CDC<->JTAG runtime switch. */
+static uint32_t Jtag_Last_ms;            /* ms of last JTAG activity (0 = CDC mode) */
+static uint8_t  Jtag_Mode;               /* 1 = TDI/TDO active, 0 = USART1 CDC */
+
+extern uint32_t Get_SysTick_ms(void);    /* main.c, 1 ms counter */
+
+void PORT_JTAG_ENABLE(void);
+void PORT_JTAG_DISABLE(void);
+
+/* 1 ms heartbeat, polled from main()'s loop. Reverts to CDC after
+   CDC_JTAG_TIMEOUT_MS of JTAG inactivity. */
+void JTAG_Port_Tick(void)
+{
+  uint32_t ms = Get_SysTick_ms();
+
+  if (Jtag_Mode && (ms - Jtag_Last_ms) > CDC_JTAG_TIMEOUT_MS)
+  {
+    PORT_JTAG_DISABLE();        /* idle: back to USART1 CDC */
+  }
+}
+
+/* Called on any CMSIS-DAP command in a JTAG session: enter JTAG mode if
+   needed and record the activity timestamp. */
+void JTAG_Port_Activity(void)
+{
+  if (!Jtag_Mode)
+  {
+    PORT_JTAG_ENABLE();
+  }
+  Jtag_Last_ms = Get_SysTick_ms();
+}
+
+/* PA9/PA10 from USART1 (CDC) to JTAG TDI/TDO: stop the UART, then
+   PA9 -> push-pull output (TDI, driven), PA10 -> floating input (TDO). */
+void PORT_JTAG_ENABLE(void)
+{
+  USART1->CR1 &= ~(USART_CR1_UE | USART_CR1_TXEIE | USART_CR1_RXNEIE);
+  /* PA9 output push-pull (TDI), PA10 input floating (TDO) */
+  Set_Pin_Nibbles(GPIOA, (1UL << 9) | (1UL << 10), 0x04);   /* both input first */
+  Set_Pin_Nibbles(GPIOA, (1UL << 9), 0x03);                 /* PA9 -> PP out */
+  PIN_TDI_OUT(1U);                                          /* TDI idle high */
+  Jtag_Mode = 1U;
+}
+
+/* PA9/PA10 back to USART1 (CDC): PA9 AF push-pull, PA10 input, restart UART. */
+void PORT_JTAG_DISABLE(void)
+{
+  Set_Pin_Nibbles(GPIOA, (1UL << 9), 0x04);                 /* PA9 -> input */
+  Set_Pin_Nibbles(GPIOA, (1UL << 10), 0x04);                /* PA10 -> input */
+  USART_Configuration();
+  Set_Pin_Nibbles(GPIOA, (1UL << 9), 0x0B);                 /* PA9 -> AF PP */
+  Jtag_Mode = 0U;
+}
+#endif  /* (CDC_JTAG_SWITCH != 0) */
+
 /* Kick the USART transmitter when USB has queued data.
    Only enables the TXE interrupt - all bytes are written to DR from the
    ISR, so the main loop can never race the interrupt on DR. */
@@ -255,6 +311,22 @@ void PORT_OFF(void)
 {
   PIN_SWDIO_TMS_OUT_DISABLE();
   PIN_nRESET_HIGH();
+#if (CDC_JTAG_SWITCH != 0)
+  if (Jtag_Mode)
+  {
+    PORT_JTAG_DISABLE();
+  }
+#endif
+}
+
+/* DAP_Connect(DAP_PORT_JTAG) -> switch PA9/PA10 to TDI/TDO.
+   Declared unconditionally in DAP_config.h; with CDC_JTAG_SWITCH 0
+   (forced CDC-only) DAP_JTAG is 0 and this is a no-op. */
+void PORT_JTAG_SETUP(void)
+{
+#if (CDC_JTAG_SWITCH != 0)
+  PORT_JTAG_ENABLE();          /* USART1 off, PA9=TDI out, PA10=TDO in */
+#endif
 }
 
 void vResetTarget(uint8_t bit)
