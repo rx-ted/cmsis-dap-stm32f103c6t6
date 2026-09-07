@@ -3,6 +3,7 @@
 ## Implemented (verified)
 
 ### SWD / debug (CMSIS-DAP over HID)
+
 - HID transport on EP3, CMSIS-DAP protocol (DAP_Info reports PROTO_VER 2.0.0).
 - SWD-only transport: connect, read/write AP-IDR, CPUID, flash reads
   (incl. 64-byte block reads to PMA via bulk reads), RAM read/write,
@@ -14,6 +15,7 @@
   erase + page program + verify, target then runs the programmed image.
 
 ### USB composite device
+
 - One device, three interfaces: HID (DAP), CDC ACM notify, CDC data.
   Endpoints: EP0 ctrl, EP1 CDC notify IN, EP2 CDC data IN/OUT, EP3 HID.
 - Vendor "ARM", product "CMSIS-DAP-C6".
@@ -23,6 +25,7 @@
 - No software USB connect pin: the board keeps USB always attached.
 
 ### CDC virtual serial port (USART1 bridge)
+
 - USART1 at PA9 (TX) / PA10 (RX), 115200 8-N-1, RX interrupt driven.
 - SPSC ring buffers (512 B each), ISR-only USART writes, ORE/error flags
   cleared in the RX ISR, natural-NAK flow control on EP2 OUT.
@@ -30,6 +33,7 @@
 - USART1 IRQ at the same NVIC priority as USB so RX cannot be starved.
 
 ### Indicators
+
 - PB8 LED_RUNNING: blinks ~1 Hz in the main loop.
 - PB12 LED_CONNECTED: on once the USB device reaches CONFIGURED state.
 

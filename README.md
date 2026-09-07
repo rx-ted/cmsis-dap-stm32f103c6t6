@@ -12,12 +12,12 @@ CMSIS-DAP_SWO project, reduced to a minimal pin-compatible C6 build.
 
 ## Layout
 
-- `doc/`         architecture, build, verified results, feature lists
-- `hardware/`    pinout and wiring
-- `test/`        CDC loopback and SWD regression scripts
-- `src/`         sources (`dap/`, `usb/`, `config/`, `cmsis/`)
-- `startup/`     vector startup and linker script
-- `cmake/`       arm-none-eabi toolchain file
+- `doc/` architecture, build, verified results, feature lists
+- `hardware/` pinout and wiring
+- `test/` CDC loopback and SWD regression scripts
+- `src/` sources (`dap/`, `usb/`, `config/`, `cmsis/`)
+- `startup/` vector startup and linker script
+- `cmake/` arm-none-eabi toolchain file
 
 See `doc/README.md` for build and usage, `doc/features.md` for the
 implemented / not-implemented matrix, `hardware/pinout.md` for wiring.

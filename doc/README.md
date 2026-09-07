@@ -6,7 +6,7 @@ nanoDAP project.
 
 ## Architecture
 
-```
+```txt
                  USB (FS 12Mbps, PA11/PA12)
         +------------------------------------+
         |  Composite device:                 |
@@ -70,6 +70,8 @@ builds into its own `build/<presetName>/` directory.
 
 Flash the probe with an ST-Link (SM3/NRST/GND wiring, see `hardware/pinout.md`).
 
+Flashing, erasing, read-protection and other OpenOCD device operations are
+covered in `doc/flash.md`.
 
 ## Verified results
 
