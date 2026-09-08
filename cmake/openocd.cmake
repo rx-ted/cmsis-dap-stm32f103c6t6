@@ -18,14 +18,20 @@ endif()
 set(OPENOCD_INTERFACE "interface/stlink.cfg" CACHE STRING "OpenOCD interface config")
 set(OPENOCD_TRANSPORT "hla_swd"              CACHE STRING "OpenOCD transport")
 set(OPENOCD_TARGET    "target/stm32f1x.cfg"  CACHE STRING "OpenOCD target config")
-set(OPENOCD_SPEED     10000                  CACHE STRING "SWD adapter speed (kHz)")
+set(OPENOCD_SPEED     10000                  CACHE STRING "SWD adapter clock (kHz)")
+
+# DAP software reset only (reset_config none). This avoids any dependency on
+# the ST-Link NRST wire: the C6 SWD header exposes SWDIO/SWCLK/GND/3V3, and
+# NRST (PA6) is optional. Set OPENOCD_RESET_CONFIG=srst_only if you wire
+# the ST-Link NRST pin and prefer a hardware reset.
+set(OPENOCD_RESET_CONFIG "none" CACHE STRING "reset_config (none or srst_only)")
 
 set(_OC_COMMON
     -f ${OPENOCD_INTERFACE}
     -c "transport select ${OPENOCD_TRANSPORT}"
     -f ${OPENOCD_TARGET}
     -c "adapter speed ${OPENOCD_SPEED}"
-    -c "reset_config srst_only"
+    -c "reset_config ${OPENOCD_RESET_CONFIG}"
 )
 
 # ---- check: read IDCODE, verify connectivity ----

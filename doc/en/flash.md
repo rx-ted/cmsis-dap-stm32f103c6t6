@@ -15,7 +15,7 @@ Output files: `build/Release/nanoDAP-C6.hex` and `build/Release/nanoDAP-C6.bin`.
 ## Flashing the C6 board itself (local)
 
 The C6 mini board has a SWD header (PA2 SWDIO / PA4 SWCLK / GND / 3.3V).
-Connect an ST-Link V2 to these pins plus NRST (PA6 optional but recommended).
+Connect an ST-Link V2 to these pins; NRST (PA6) is optional.
 
 Wiring (ST-Link → C6):
 
@@ -41,21 +41,13 @@ Or with the native cmake driver:
 cmake --build --preset Release --target flash
 ```
 
-**Reset-line dependency:** the `flash` target uses `reset_config srst_only`
-(i.e. the ST-Link NRST pin). If NRST is not wired, flashing still works but
-the trailing `reset` fails with "Unable to reset target". Flash with a
-software reset instead:
+**Reset strategy:** the `flash`/`erase`/`lock`/`unlock`/`reset` targets use
+`reset_config none` (DAP software reset), so no ST-Link NRST wire is needed
+— SWDIO/SWCLK/GND/3V3 are enough. If you have wired the ST-Link NRST pin,
+override to use the hardware reset line:
 
 ```sh
-openocd -f interface/stlink.cfg \
-  -c "transport select hla_swd" \
-  -f target/stm32f1x.cfg \
-  -c "adapter speed 10000" \
-  -c "reset_config none" \
-  -c "init" -c "halt" \
-  -c "flash write_image erase build/Release/nanoDAP-C6.hex" \
-  -c "verify_image build/Release/nanoDAP-C6.hex" \
-  -c "reset run" -c "shutdown"
+cmake --preset Release -DOPENOCD_RESET_CONFIG=srst_only
 ```
 
 Other local targets:

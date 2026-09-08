@@ -15,7 +15,7 @@
 ## 烧录 C6 板本身（本地）
 
 C6 mini 板有 SWD 排针（PA2 SWDIO / PA4 SWCLK / GND / 3.3V）。将
-ST-Link V2 接到这些引脚，外加 NRST（PA6，可选但推荐）。
+ST-Link V2 接到这些引脚；NRST（PA6）可选。
 
 接线（ST-Link → C6）：
 
@@ -41,20 +41,12 @@ make -C build/Release flash       # 编程 + 校验 + 复位
 cmake --build --preset Release --target flash
 ```
 
-**复位线依赖**：`flash` 目标使用 `reset_config srst_only`（即 ST-Link
-NRST 引脚）。若未接 NRST，烧录仍可进行，但结尾的 `reset` 会报
-"Unable to reset target"。改用软件复位烧录：
+**复位策略**：`flash`/`erase`/`lock`/`unlock`/`reset` 目标使用
+`reset_config none`（DAP 软件复位），无需接 ST-Link NRST —— 只需
+SWDIO/SWCLK/GND/3V3 即可。若已接好 ST-Link NRST，可改用硬件复位线：
 
 ```sh
-openocd -f interface/stlink.cfg \
-  -c "transport select hla_swd" \
-  -f target/stm32f1x.cfg \
-  -c "adapter speed 10000" \
-  -c "reset_config none" \
-  -c "init" -c "halt" \
-  -c "flash write_image erase build/Release/nanoDAP-C6.hex" \
-  -c "verify_image build/Release/nanoDAP-C6.hex" \
-  -c "reset run" -c "shutdown"
+cmake --preset Release -DOPENOCD_RESET_CONFIG=srst_only
 ```
 
 其它本地目标：
