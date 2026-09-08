@@ -1,0 +1,20 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "C6 (OpenOCD gdbserver)",
+      "type": "cortex-debug",
+      "servertype": "openocd",
+      "request": "launch",
+      "cwd": "${workspaceFolder}",
+      "executable": "${workspaceFolder}/build/Debug/nanoDAP-C6.elf",
+      "device": "STM32F103C6T6",
+"configFiles": [
+        "interface/stlink.cfg",
+        "target/stm32f1x.cfg"
+      ],
+      "gdbPath": "arm-none-eabi-gdb",
+      "preLaunchTask": "Build & start gdbserver"
+    }
+  ]
+}

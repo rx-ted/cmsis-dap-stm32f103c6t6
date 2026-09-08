@@ -1,0 +1,22 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Build",
+      "type": "shell",
+      "command": "cmake --build --preset Debug",
+      "problemMatcher": ["$gcc"]
+    },
+    {
+      "label": "Start gdbserver",
+      "type": "shell",
+      "command": "cd build/Debug && make gdbserver",
+      "isBackground": true,
+      "problemMatcher": []
+    },
+    {
+      "label": "Build & start gdbserver",
+      "dependsOn": ["Build", "Start gdbserver"]
+    }
+  ]
+}
