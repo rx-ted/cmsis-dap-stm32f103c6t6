@@ -31,14 +31,6 @@
                 "CMAKE_BUILD_TYPE": "Debug",
                 "CMAKE_C_FLAGS": "-DCDC_USB_LOOPBACK_TEST"
             }
-        },
-        {
-            "name": "cdc",
-            "inherits": "default",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Release",
-                "CMAKE_C_FLAGS": "-DCDC_JTAG_SWITCH=0"
-            }
         }
     ],
     "buildPresets": [
@@ -53,10 +45,6 @@
         {
             "name": "ubtest",
             "configurePreset": "ubtest"
-        },
-        {
-            "name": "cdc",
-            "configurePreset": "cdc"
         }
     ]
 }

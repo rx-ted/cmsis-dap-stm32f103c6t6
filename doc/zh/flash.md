@@ -4,12 +4,11 @@
 
 构建预设：
 
-| 预设    | 构建类型 | 大小                        | 用途                     |
-|---------|----------|-----------------------------|--------------------------|
-| Release | -Os -g0  | FLASH 13196 B / RAM 2636 B  | 烧录用构建（默认）       |
-| Debug   | -Os -g3  | FLASH 13196 B / RAM 2636 B  | GDB / VS Code 调试符号   |
-| ubtest  | Debug    | —                           | CDC USB 回环测试         |
-| cdc     | Release  | FLASH 10368 B / RAM 2588 B  | 仅 CDC（JTAG 编译移除）  |
+| 预设    | 构建类型 | 大小                       | 用途                     |
+|---------|----------|----------------------------|--------------------------|
+| Release | -Os -g0  | FLASH 10368 B / RAM 2588 B | 烧录用构建（默认）       |
+| Debug   | -Os -g3  | FLASH 10368 B / RAM 2588 B | GDB / VS Code 调试符号   |
+| ubtest  | Debug    | —                          | CDC USB 回环测试         |
 
 产物文件：`build/Release/nanoDAP-C6.hex` 与 `build/Release/nanoDAP-C6.bin`。
 
@@ -82,18 +81,6 @@ C6 → 目标（SWD）：
 | PA4 | SWCLK  |
 | PA6 | NRST   |
 | GND | GND    |
-
-C6 → 目标（JTAG）：TDI/TDO 位于 PA9/PA10（与 USART1 共享，见
-features.md）。JTAG 会话期间探针自动切换为 TDI/TDO。
-
-| C6   | 目标 |
-|------|------|
-| PA4  | TCK  |
-| PA2  | TMS  |
-| PA9  | TDI  |
-| PA10 | TDO  |
-| PA6  | NRST |
-| GND  | GND  |
 
 以 CMSIS-DAP 接口配置并重新构建：
 

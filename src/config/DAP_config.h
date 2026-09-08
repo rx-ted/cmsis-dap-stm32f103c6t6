@@ -99,14 +99,14 @@ Provides definitions about:
 #define DAP_SWD                 1       ///< SWD Mode:  1 = available, 0 = not available
 
 /// CMSIS-DAP JTAG vs CDC serial switching on shared PA9/PA10 pins.
-/// BOARD_C6 reuses USART1 TX/RX (PA9/PA10) as JTAG TDI/TDO. With
-/// CDC_JTAG_SWITCH = 1 (default) both modes are compiled in and switched
-/// at runtime: Pins default to USART1 (CDC), while the host runs JTAG
-/// (DAP_PORT_JTAG or any DAP_JTAG_* command) they become TDI/TDO, and
-/// after CDC_JTAG_TIMEOUT_MS of inactivity revert to CDC. With
-/// CDC_JTAG_SWITCH = 0 the build is forced to CDC-only (DAP_JTAG 0).
+/// BOARD_C6 reuses USART1 TX/RX (PA9/PA10) as JTAG TDI/TDO. JTAG is NOT
+/// supported yet: CDC_JTAG_SWITCH defaults to 0, forcing a CDC-only build
+/// (DAP_JTAG 0) — JTAG support is planned for a future firmware release.
+/// Set CDC_JTAG_SWITCH = 1 on the compile command line to enable the
+/// runtime switch (pins default to USART1 CDC, become TDI/TDO while the
+/// host runs JTAG, and revert to CDC after CDC_JTAG_TIMEOUT_MS of quiet).
 #ifndef CDC_JTAG_SWITCH
-#define CDC_JTAG_SWITCH         1       ///< 1 = runtime CDC<->JTAG switch, 0 = forced
+#define CDC_JTAG_SWITCH         0       ///< 1 = runtime CDC<->JTAG switch, 0 = forced CDC-only
 #endif
 #ifndef CDC_JTAG_TIMEOUT_MS
 #define CDC_JTAG_TIMEOUT_MS     2000    ///< JTAG idle time (ms) before reverting to CDC

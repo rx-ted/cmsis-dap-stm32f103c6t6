@@ -6,10 +6,9 @@ Build presets:
 
 | Preset  | Build type | Footprint                  | Use                          |
 | ------- | ---------- | -------------------------- | ---------------------------- |
-| Release | -Os -g0    | FLASH 13196 B / RAM 2636 B | flashing build (default)     |
-| Debug   | -Os -g3    | FLASH 13196 B / RAM 2636 B | GDB / VS Code debug symbols  |
+| Release | -Os -g0    | FLASH 10368 B / RAM 2588 B | flashing build (default)     |
+| Debug   | -Os -g3    | FLASH 10368 B / RAM 2588 B | GDB / VS Code debug symbols  |
 | ubtest  | Debug      | —                          | CDC USB loopback test        |
-| cdc     | Release    | FLASH 10368 B / RAM 2588 B | CDC-only (JTAG compiled out) |
 
 Output files: `build/Release/nanoDAP-C6.hex` and `build/Release/nanoDAP-C6.bin`.
 
@@ -83,18 +82,6 @@ C6 → Target (SWD):
 | PA4 | SWCLK  |
 | PA6 | NRST   |
 | GND | GND    |
-
-C6 → Target (JTAG): TDI/TDO live on PA9/PA10 (shared with USART1, see
-features.md). The probe autoreverts to TDI/TDO while a JTAG session runs.
-
-| C6   | Target |
-| ---- | ------ |
-| PA4  | TCK    |
-| PA2  | TMS    |
-| PA9  | TDI    |
-| PA10 | TDO    |
-| PA6  | NRST   |
-| GND  | GND    |
 
 Configure with CMSIS-DAP interface and re-build:
 

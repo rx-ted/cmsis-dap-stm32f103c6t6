@@ -62,12 +62,11 @@ cmake --build --preset Release
 ```
 
 Output: `build/Release/nanoDAP-C6.hex` / `build/Release/nanoDAP-C6.bin`.
-Current footprint: FLASH 13196/32768 B (40.3%), RAM 2636/10240 B (25.7%)
-(JTAG + CDC/JTAG runtime switching included).
+Current footprint: FLASH 10368/32768 B (31.6%), RAM 2588/10240 B (25.3%)
+(JTAG compiled out by default; re-enable via `CDC_JTAG_SWITCH=1`).
 
-Other presets: `Debug` (-Os -g3) for GDB / VS Code, `ubtest`
-(`-DCDC_USB_LOOPBACK_TEST`) for the USB-internal loopback variant, and
-`cdc` (JTAG compiled out, back to FLASH 10368 B) for a CDC-only build;
+Other presets: `Debug` (-Os -g3) for GDB / VS Code, and `ubtest`
+(`-DCDC_USB_LOOPBACK_TEST`) for the USB-internal loopback variant;
 each builds into its own `build/<presetName>/` directory.
 
 Flash the probe with an ST-Link (SM3/NRST/GND wiring, see `doc/en/pinout.md`).
